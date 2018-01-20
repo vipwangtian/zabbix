@@ -5,7 +5,7 @@ import re
 import json
 import subprocess
 
-from cmds import cmds
+from codis.cmds import cmds
 from optparse import OptionParser
 from kazoo.client import KazooClient
 
