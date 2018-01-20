@@ -8,7 +8,7 @@ import json
 import requests
 import subprocess
 
-from cmds import cmds
+from codis.cmds import cmds
 from optparse import OptionParser
 from kazoo.client import KazooClient
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
