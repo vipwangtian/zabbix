@@ -11,10 +11,10 @@ pip install kazoo
 rpm -ivh http://repo.zabbix.com/zabbix/3.4/rhel/6/x86_64/zabbix-sender-3.4.3-1.el6.x86_64.rpm
 ```
 重启zabbix-agent<br/>
-在web端导入监控模板。
 ```shell
 service zabbix-agent restart
 ```
+在web端导入监控模板。
 ### 实现原理
 模板中包含自动发现，自动发现会调用客户端codis.py --listserver发现codis-server，codis.py --listproxy发现codis-proxy。<br/>
 发现方式为从zookeeper中读取集群配置。<br/>
