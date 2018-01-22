@@ -1,2 +1,1 @@
-# zabbix
-zabbix监控模板
+# zabbix监控模板
