@@ -10,6 +10,12 @@ pip install kazoo
 ```shell
 rpm -ivh http://repo.zabbix.com/zabbix/3.4/rhel/6/x86_64/zabbix-sender-3.4.3-1.el6.x86_64.rpm
 ```
+zabbix-agent默认是在zabbix用户下执行的，要执行系统命令需要赋权限，执行如下命令
+```shell
+echo "zabbix ALL=(root) NOPASSWD:/bin/netstat" > /etc/sudoers.d/zabbix
+echo 'Defaults:zabbix   !requiretty'  >>  /etc/sudoers.d/zabbix
+chmod 600  /etc/sudoers.d/zabbix
+```
 重启zabbix-agent<br/>
 ```shell
 service zabbix-agent restart
