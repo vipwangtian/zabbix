@@ -21,7 +21,7 @@ chmod 600  /etc/sudoers.d/zabbix
 service zabbix-agent restart
 ```
 在web端导入Template App Codis Auto Discovery.xml模板，链接到codis-proxy和codis-server部署的主机<br/>
-Template App Codis FE.xml用于监控-fe是否存活，可以忽略，只检测9090端口是否被监听。
+Template App Codis FE.xml用于监控codis-fe是否存活，可以忽略，只检测9090端口是否被监听。
 ### 实现原理
 模板中包含自动发现，自动发现会调用客户端codis.py --listserver发现codis-server，codis.py --listproxy发现codis-proxy。<br/>
 发现方式为从zookeeper中读取集群配置。<br/>
