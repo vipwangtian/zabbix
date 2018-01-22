@@ -1,2 +1,2 @@
-# zabbix_codis
-zabbix监控codis
+# zabbix
+zabbix监控模板
