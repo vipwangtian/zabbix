@@ -9,7 +9,6 @@ server {
   location /stub_status {
     stub_status on;
     access_log off;
-    allow 192.168.0.0/16;
     allow 127.0.0.1;
     deny all;
   }
