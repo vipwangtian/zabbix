@@ -6,7 +6,7 @@ import os
 import requests
 import re
 import subprocess
-from cmds import cmds
+from common.cmds import cmds
 from optparse import OptionParser
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
