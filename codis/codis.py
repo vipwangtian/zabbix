@@ -85,10 +85,30 @@ class Codis(object):
         for port in port_arr:
             ret.append({"{#REDIS_PORT}": port})
         return json.dumps({'data': ret}, sort_keys=True, indent=7, separators=(",",":"))
+
+    def get_dashboard_port_list(self):
+        ip_last = self.get_ip().split(".")[3]
+
+        zk = KazooClient(hosts='127.0.0.1:2181')
+        zk.start()
+        port_arr = []
+        children = zk.get_children("/codis3")
+        for child in children:
+            node_str, stat = zk.get("/codis3/" + child + "/topom")
+            data = json.loads(node_str)
+            arr = data["admin_addr"].split(":")
+            if ip_last in arr[0]:
+                port_arr.append(arr[1])
+        zk.stop()
+        ret = list()
+        port_arr.sort()
+        for port in port_arr:
+            ret.append({"{#REDIS_PORT}":port})
+        return json.dumps({'data': ret}, sort_keys=True, indent=7, separators=(",",":"))
             
     def get_item_proxy(self, port=None):
         ret = False
-        url = "http://127.0.0.1:{1}/proxy/stats".format(port)
+        url = "http://127.0.0.1:{0}/proxy/stats".format(port)
         r = requests.get(url, verify=False)
         if r.status_code == 200 :
             data = r.json()
@@ -123,6 +143,21 @@ class Codis(object):
             return True
         return False        
 
+    def get_item_dashboard(self, port = None):
+        ret = False
+        url = "http://127.0.0.1:{0}/topom".format(port)
+        r = requests.get(url, verify=False)
+        if r.status_code == 200:
+            ret = True
+            data = r.json()
+            resobj = {}
+            resobj["pid"] = data["model"]["pid"]
+            resobj["product_name"] = data["config"]["product_name"]
+            resobj["pwd"] = data["model"]["pwd"]
+            resobj["start_time"] = data["model"]["start_time"]
+            self.send2zabbix("custom.codisdashboard.item", resobj)
+        return ret
+
     def send2zabbix(self,key_type,data):
         FNULL = open(os.devnull, 'w')
         for key in data.keys():
@@ -140,6 +175,9 @@ def main():
         parser.add_option("-R", "--listserver",  
                           action="store_true", dest="is_list_server", default=False,  help="if list all codis server stat port")
         
+        parser.add_option("-D", "--listdashboard",  
+                          action="store_true", dest="is_list_dashboard", default=False,  help="if list all codis dashboard stat port")
+
         parser.add_option("-k", "--key", 
                           action="store", dest="key", type="string", 
                           default='', help="call codis proxy stat API to see more infomation")
@@ -160,11 +198,16 @@ def main():
         elif options.is_list_server == True:
             print codis_ins.get_server_port_list()
             return
+        elif options.is_list_dashboard == True:
+            print codis_ins.get_dashboard_port_list()
+            return
         elif options.key == "get_item_proxy":
             print codis_ins.get_item_proxy(port=options.port)
             return
         elif options.key == "get_item_server":
             print codis_ins.get_item_server(port=options.port)
+        elif options.key == "get_item_dashboard":
+            print codis_ins.get_item_dashboard(port=options.port)
 
     except Exception as expt:
         import traceback
