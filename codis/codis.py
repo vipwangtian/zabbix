@@ -88,7 +88,7 @@ class Codis(object):
             
     def get_item_proxy(self, port=None):
         ret = False
-        url = "http://{0}:{1}/proxy/stats".format(self.get_ip(), port)
+        url = "http://127.0.0.1:{1}/proxy/stats".format(port)
         r = requests.get(url, verify=False)
         if r.status_code == 200 :
             data = r.json()
