@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>3.4</version>
-    <date>2018-01-23T06:49:58Z</date>
+    <date>2018-01-23T06:58:27Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -273,7 +273,24 @@
                             <master_item_prototype/>
                         </item_prototype>
                     </item_prototypes>
-                    <trigger_prototypes/>
+                    <trigger_prototypes>
+                        <trigger_prototype>
+                            <expression>{Template App Codis Auto Discovery:custom.codisdashboard.item[{#REDIS_PORT}].count(#5,True,ne)}&gt;3</expression>
+                            <recovery_mode>1</recovery_mode>
+                            <recovery_expression>{Template App Codis Auto Discovery:custom.codisdashboard.item[{#REDIS_PORT}].count(#3,True,eq)}&gt;3</recovery_expression>
+                            <name>codis-dashboard unreachable</name>
+                            <correlation_mode>0</correlation_mode>
+                            <correlation_tag/>
+                            <url/>
+                            <status>0</status>
+                            <priority>2</priority>
+                            <description/>
+                            <type>0</type>
+                            <manual_close>1</manual_close>
+                            <dependencies/>
+                            <tags/>
+                        </trigger_prototype>
+                    </trigger_prototypes>
                     <graph_prototypes/>
                     <host_prototypes/>
                     <jmx_endpoint/>
