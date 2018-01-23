@@ -33,7 +33,7 @@ class Codis(object):
         self.zabbix_sender = "/usr/bin/zabbix_sender"
         self.zabbix_conf = "/etc/zabbix/zabbix_agentd.conf"
 
-    def get_ip_last(self):
+    def get_ip(self):
         cmdstr = "ifconfig -a|grep inet|grep -v 127.0.0.1|grep -v inet6|awk '{print $2}'|tr -d \"addr:\""
         c2 = cmds(cmdstr, timeout=3)
         stdo = c2.stdo()
@@ -41,11 +41,10 @@ class Codis(object):
         retcode = c2.code()
         
         (stdo_list, stde_list) = (re.split("\n", stdo), re.split("\n", stde))
-        ip_last = stdo_list[1].split(".")[3]
-        return ip_last
+        return stdo_list[1]
 
     def get_proxy_port_list(self):
-        ip_last = self.get_ip_last()
+        ip_last = self.get_ip().split(".")[3]
 
         zk = KazooClient(hosts='127.0.0.1:2181')
         zk.start()
@@ -67,7 +66,7 @@ class Codis(object):
         return json.dumps({'data': ret}, sort_keys=True, indent=7, separators=(",",":"))
 
     def get_server_port_list(self):
-        ip_last = self.get_ip_last()
+        ip_last = self.get_ip().split(".")[3]
 
         zk = KazooClient(hosts='127.0.0.1:2181')
         zk.start()
@@ -89,7 +88,7 @@ class Codis(object):
             
     def get_item_proxy(self, port=None):
         ret = False
-        url = "http://192.168.111.156:{}/proxy/stats".format(port)
+        url = "http://{0}:{1}/proxy/stats".format(self.get_ip(), port)
         r = requests.get(url, verify=False)
         if r.status_code == 200 :
             data = r.json()
