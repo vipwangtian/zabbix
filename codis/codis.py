@@ -203,6 +203,7 @@ def main():
             return
         elif options.key == "get_item_server":
             print codis_ins.get_item_server()
+            return
         elif options.key == "get_item_dashboard":
             print codis_ins.get_item_dashboard()
 
