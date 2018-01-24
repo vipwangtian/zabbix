@@ -1,5 +1,5 @@
-#!/usr/bin/python
-#encoding=UTF8
+#!/usr/bin/env python
+#-*- coding:utf-8 -*-
 
 import sys
 import os
@@ -8,6 +8,8 @@ import json
 import requests
 import subprocess
 
+from codis_config import Config
+from codis_config import NodeType
 from common.cmds import cmds
 from optparse import OptionParser
 from kazoo.client import KazooClient
@@ -15,38 +17,34 @@ from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 class Codis(object):        
-    def __init__(self, port=6379):
-        self._port = port if port else 6379
-        self.server_key_map = [
-        "lru_clock",
-        "total_commands_processed",
-        "used_memory",
-        "mem_fragmentation_ratio",
-        "used_memory_peak",
-        "blocked_clients",
-        "connected_clients",
-        "rejected_connections",
-        "total_connections_received",
-        "keyspace_misses",
-        "used_memory_rss"
-        ]
-        self.zabbix_sender = "/usr/bin/zabbix_sender"
-        self.zabbix_conf = "/etc/zabbix/zabbix_agentd.conf"
+    def __init__(self, port=None):
+        self.port = port
 
-    def get_ip(self):
-        cmdstr = "ifconfig -a|grep inet|grep -v 127.0.0.1|grep -v inet6|awk '{print $2}'|tr -d \"addr:\""
-        c2 = cmds(cmdstr, timeout=3)
-        stdo = c2.stdo()
-        stde = c2.stde()
-        retcode = c2.code()
-        
-        (stdo_list, stde_list) = (re.split("\n", stdo), re.split("\n", stde))
-        return stdo_list[1]
+    def get_ip(self,node_type=None):
+        if Config.auto_discovery_node_ip:
+            cmdstr = "ifconfig -a|grep inet|grep -v 127.0.0.1|grep -v inet6|awk '{print $2}'|tr -d \"addr:\""
+            c2 = cmds(cmdstr, timeout=3)
+            stdo = c2.stdo()
+            stde = c2.stde()
+            retcode = c2.code()
+            
+            (stdo_list, stde_list) = (re.split("\n", stdo), re.split("\n", stde))
+            return stdo_list[1]
+        else:
+            if node_type == NodeType.Dashboard:
+                return Config.codis_dashboard_ip
+            elif node_type == NodeType.Proxy:
+                return Config.codis_proxy_ip
+            elif node_type == NodeType.Server:
+                return Config.codis_server_ip
+            else:
+                return None
+            
 
     def get_proxy_port_list(self):
-        ip_last = self.get_ip().split(".")[3]
+        ip_last = self.get_ip(NodeType.Proxy).split(".")[3]
 
-        zk = KazooClient(hosts='127.0.0.1:2181')
+        zk = KazooClient(hosts=Config.zookeeper_host)
         zk.start()
         port_arr = []
         cluster_children = zk.get_children("/codis3")
@@ -66,9 +64,9 @@ class Codis(object):
         return json.dumps({'data': ret}, sort_keys=True, indent=7, separators=(",",":"))
 
     def get_server_port_list(self):
-        ip_last = self.get_ip().split(".")[3]
+        ip_last = self.get_ip(NodeType.Server).split(".")[3]
 
-        zk = KazooClient(hosts='127.0.0.1:2181')
+        zk = KazooClient(hosts=Config.zookeeper_host)
         zk.start()
         port_arr = []
         children = zk.get_children("/codis3")
@@ -87,9 +85,9 @@ class Codis(object):
         return json.dumps({'data': ret}, sort_keys=True, indent=7, separators=(",",":"))
 
     def get_dashboard_port_list(self):
-        ip_last = self.get_ip().split(".")[3]
+        ip_last = self.get_ip(NodeType.Dashboard).split(".")[3]
 
-        zk = KazooClient(hosts='127.0.0.1:2181')
+        zk = KazooClient(hosts=Config.zookeeper_host)
         zk.start()
         port_arr = []
         children = zk.get_children("/codis3")
@@ -106,9 +104,9 @@ class Codis(object):
             ret.append({"{#REDIS_PORT}":port})
         return json.dumps({'data': ret}, sort_keys=True, indent=7, separators=(",",":"))
             
-    def get_item_proxy(self, port=None):
+    def get_item_proxy(self):
         ret = False
-        url = "http://127.0.0.1:{0}/proxy/stats".format(port)
+        url = "http://127.0.0.1:{0}/proxy/stats".format(self.port)
         r = requests.get(url, verify=False)
         if r.status_code == 200 :
             data = r.json()
@@ -124,10 +122,9 @@ class Codis(object):
                 self.send2zabbix("custom.codisproxy.item", resobj)
         return ret
 
-    def get_item_server(self, port = None):
-        port = port if port else self._port
+    def get_item_server(self):
         rds_cli_path = "/usr/local/codis/bin/redis-cli"
-        cmdstr = "%s -h 127.0.0.1 -p %s info" % (rds_cli_path, port)
+        cmdstr = "%s -h 127.0.0.1 -p %s info" % (rds_cli_path, self.port)
         c2 = cmds(cmdstr, timeout=3)
         stdo = c2.stdo()
         stde = c2.stde()
@@ -135,7 +132,7 @@ class Codis(object):
         (stdo_list, stde_list) = (re.split("\n", stdo), re.split("\n", stde))
         resobj = {}
         for line in stdo_list:
-            for key in self.server_key_map:
+            for key in Config.server_key_map:
                 if key + ":" in str(line):
                     resobj[key] = line.split(":")[1].strip()
         if len(resobj) > 0:
@@ -143,9 +140,9 @@ class Codis(object):
             return True
         return False        
 
-    def get_item_dashboard(self, port = None):
+    def get_item_dashboard(self):
         ret = False
-        url = "http://127.0.0.1:{0}/topom".format(port)
+        url = "http://127.0.0.1:{0}/topom".format(self.port)
         r = requests.get(url, verify=False)
         if r.status_code == 200:
             ret = True
@@ -161,7 +158,7 @@ class Codis(object):
     def send2zabbix(self,key_type,data):
         FNULL = open(os.devnull, 'w')
         for key in data.keys():
-            subprocess.call([self.zabbix_sender, "-c", self.zabbix_conf, "-k", "{0}[{1},{2}]".format(key_type, self._port, key), "-o", str(data[key])], stdout = FNULL, stderr = FNULL, shell = False)
+            subprocess.call([Config.zabbix_sender, "-c", Config.zabbix_conf, "-k", "{0}[{1},{2}]".format(key_type, self.port, key), "-o", str(data[key])], stdout = FNULL, stderr = FNULL, shell = False)
         FNULL.close()
 
 def main():
@@ -202,12 +199,12 @@ def main():
             print codis_ins.get_dashboard_port_list()
             return
         elif options.key == "get_item_proxy":
-            print codis_ins.get_item_proxy(port=options.port)
+            print codis_ins.get_item_proxy()
             return
         elif options.key == "get_item_server":
-            print codis_ins.get_item_server(port=options.port)
+            print codis_ins.get_item_server()
         elif options.key == "get_item_dashboard":
-            print codis_ins.get_item_dashboard(port=options.port)
+            print codis_ins.get_item_dashboard()
 
     except Exception as expt:
         import traceback
