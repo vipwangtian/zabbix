@@ -10,8 +10,6 @@ class Config(object):
     codis_server_ip = 'your server ip address'
     #you needn't specify the port of every node, it will be found in zookeeper automatic.
     zookeeper_host = '127.0.0.1:2181'
-    zabbix_sender = '/usr/bin/zabbix_sender'
-    zabbix_conf = '/etc/zabbix/zabbix_agentd.conf'
 
     server_key_map = [
         "lru_clock",

@@ -6,6 +6,7 @@ import os
 import requests
 import re
 import subprocess
+from common.zabbix import Zabbix
 from common.cmds import cmds
 from optparse import OptionParser
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
@@ -14,20 +15,15 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 class Nginx(object):
 	def __init__(self):
 		self.nginx_url = "http://127.0.0.1/stub_status"
-		self.zabbix_sender = "/usr/bin/zabbix_sender"
-		self.zabbix_conf = "/etc/zabbix/zabbix_agentd.conf"
 		self.cmdstr = "ps ax|grep -v \"grep\" | grep -c \"nginx:\""
 
 	def send2zabbix(self, data):
-		FNULL = open(os.devnull, 'w')
-		subprocess.call([self.zabbix_sender, "-c", self.zabbix_conf, "-k", "nginx.status[active]", "-o", str(data["active"])], stdout = FNULL, stderr = FNULL, shell = False)
-		subprocess.call([self.zabbix_sender, "-c", self.zabbix_conf, "-k", "nginx.status[accepts]", "-o", str(data["accepts"])], stdout = FNULL, stderr = FNULL, shell = False)
-		subprocess.call([self.zabbix_sender, "-c", self.zabbix_conf, "-k", "nginx.status[handled]", "-o", str(data["handled"])], stdout = FNULL, stderr = FNULL, shell = False)
-		subprocess.call([self.zabbix_sender, "-c", self.zabbix_conf, "-k", "nginx.status[requests]", "-o", str(data["requests"])], stdout = FNULL, stderr = FNULL, shell = False)
-		subprocess.call([self.zabbix_sender, "-c", self.zabbix_conf, "-k", "nginx.status[reading]", "-o", str(data["reading"])], stdout = FNULL, stderr = FNULL, shell = False)
-		subprocess.call([self.zabbix_sender, "-c", self.zabbix_conf, "-k", "nginx.status[writing]", "-o", str(data["writing"])], stdout = FNULL, stderr = FNULL, shell = False)
-		subprocess.call([self.zabbix_sender, "-c", self.zabbix_conf, "-k", "nginx.status[waiting]", "-o", str(data["waiting"])], stdout = FNULL, stderr = FNULL, shell = False)
-		FNULL.close()
+		send_data = {}
+		for key in data.keys():
+			send_key = "nginx.status[{0}]".format(key)
+			send_data[send_key] = data[key]
+		zabbix = Zabbix()
+		zabbix.send2zabbix(send_data)
 		print(data["process"])
 
 	def get_status(self):

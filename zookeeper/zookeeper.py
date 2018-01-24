@@ -11,8 +11,6 @@ from StringIO import StringIO
 class ZooKeeper(object):
  
     def __init__(self, host='localhost', port='2181', timeout=1):
-        self.zabbix_sender = '/usr/bin/zabbix_sender'
-        self.zabbix_conf = '/etc/zabbix/zabbix_agentd.conf'
         self._address = (host, int(port))
         self._timeout = timeout
         self._result  = {}
@@ -101,13 +99,12 @@ class ZooKeeper(object):
             return 0
   
     def _send2zabbix(self):
-        FNULL = open(os.devnull, 'w')
-        for key in self._result:
-            try:
-                subprocess.call([self.zabbix_sender, "-c", self.zabbix_conf, "-k", "zookeeper.status[{0}]".format(key), "-o", str(self._result[key]) ], stdout=FNULL, stderr=FNULL, shell=False)
-            except OSError, detail:
-                print "Something went wrong while exectuting zabbix_sender : ", detail
-        FNULL.close() 
+        send_data = {}
+        for key in data.keys():
+            send_key = "zookeeper.status[{0}]".format(key)
+            send_data[send_key] = data[key]
+        zabbix = Zabbix()
+        zabbix.send2zabbix(send_data)
  
 def main():
     zk = ZooKeeper()

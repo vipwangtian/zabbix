@@ -107,22 +107,24 @@ class Codis(object):
     def get_item_proxy(self):
         ret = False
         url = "http://127.0.0.1:{0}/proxy/stats".format(self.port)
+        key_pre = "custom.codisproxy.item"
         r = requests.get(url, verify=False)
         if r.status_code == 200 :
             data = r.json()
             if data["online"] :
                 ret = True
                 resobj = {}
-                resobj["qps"] = data["ops"]["qps"]
-                resobj["session_total"] = data["sessions"]["total"]
-                resobj["session_alive"] = data["sessions"]["alive"]
-                resobj["cmd_total"] = data["ops"]["total"]
-                resobj["cmd_fails"] = data["ops"]["fails"]
-                resobj["rsp_errs"] = data["ops"]["redis"]["errors"]
-                self.send2zabbix("custom.codisproxy.item", resobj)
+                resobj[self.make_zabbix_key(key_pre, "qps")] = data["ops"]["qps"]
+                resobj[self.make_zabbix_key(key_pre, "session_total")] = data["sessions"]["total"]
+                resobj[self.make_zabbix_key(key_pre, "session_alive")] = data["sessions"]["alive"]
+                resobj[self.make_zabbix_key(key_pre, "cmd_total")] = data["ops"]["total"]
+                resobj[self.make_zabbix_key(key_pre, "cmd_fails")] = data["ops"]["fails"]
+                resobj[self.make_zabbix_key(key_pre, "rsp_errs")] = data["ops"]["redis"]["errors"]
+                self.send2zabbix(resobj)
         return ret
 
     def get_item_server(self):
+        key_pre = "custom.codisserver.item"
         rds_cli_path = "/usr/local/codis/bin/redis-cli"
         cmdstr = "%s -h 127.0.0.1 -p %s info" % (rds_cli_path, self.port)
         c2 = cmds(cmdstr, timeout=3)
@@ -134,30 +136,34 @@ class Codis(object):
         for line in stdo_list:
             for key in Config.server_key_map:
                 if key + ":" in str(line):
-                    resobj[key] = line.split(":")[1].strip()
+                    resobj[self.make_zabbix_key(key_pre, key)] = line.split(":")[1].strip()
         if len(resobj) > 0:
-            self.send2zabbix("custom.codisserver.item", resobj)
+            self.send2zabbix(resobj)
             return True
         return False        
 
     def get_item_dashboard(self):
         ret = False
         url = "http://127.0.0.1:{0}/topom".format(self.port)
+        key_pre = "custom.codisdashboard.item"
         r = requests.get(url, verify=False)
         if r.status_code == 200:
             ret = True
             data = r.json()
             resobj = {}
-            resobj["pid"] = data["model"]["pid"]
-            resobj["product_name"] = data["config"]["product_name"]
-            resobj["pwd"] = data["model"]["pwd"]
-            resobj["start_time"] = data["model"]["start_time"]
-            self.send2zabbix("custom.codisdashboard.item", resobj)
+            resobj[self.make_zabbix_key(key_pre, "pid")] = data["model"]["pid"]
+            resobj[self.make_zabbix_key(key_pre, "product_name")] = data["config"]["product_name"]
+            resobj[self.make_zabbix_key(key_pre, "pwd")] = data["model"]["pwd"]
+            resobj[self.make_zabbix_key(key_pre, "start_time")] = data["model"]["start_time"]
+            self.send2zabbix(resobj)
         return ret
 
-    def send2zabbix(self,key_type,data):
-        zabbix = Zabbix(Config.zabbix_sender, Config.zabbix_conf, self.port)
-        zabbix.send2zabbix(key_type, data)
+    def make_zabbix_key(self, key_pre, key):
+        return "{0}[{1},{2}]".format(key_pre, self.port, key)
+
+    def send2zabbix(self,data):
+        zabbix = Zabbix()
+        zabbix.send2zabbix(data)
 
 def main():
     try:
