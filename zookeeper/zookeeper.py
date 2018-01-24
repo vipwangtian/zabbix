@@ -7,19 +7,19 @@ import subprocess
 import os
 
 from kazoo.client import KazooClient
+from common.zabbix import Zabbix
 from StringIO import StringIO
  
 class ZooKeeper(object):
  
     def __init__(self):
-        self._address = (host, int(port))
         self._result  = {}
  
     def _send_cmd(self, cmd):
         """ Send a 4letter word command to the server """
         zk = KazooClient(hosts = '127.0.0.1:2181')
         zk.start()
-        ret = zk.command(cmd)
+        ret = zk.command(cmd).decode('string_escape') 
         zk.stop()
         return ret
  
@@ -76,6 +76,7 @@ class ZooKeeper(object):
   
     def _send2zabbix(self):
         send_data = {}
+        data = self._result
         for key in data.keys():
             send_key = "zookeeper.status[{0}]".format(key)
             send_data[send_key] = data[key]
