@@ -6,10 +6,10 @@ import os
 import re
 import json
 import requests
-import subprocess
 
 from codis_config import Config
 from codis_config import NodeType
+from common.zabbix import Zabbix
 from common.cmds import cmds
 from optparse import OptionParser
 from kazoo.client import KazooClient
@@ -156,10 +156,8 @@ class Codis(object):
         return ret
 
     def send2zabbix(self,key_type,data):
-        FNULL = open(os.devnull, 'w')
-        for key in data.keys():
-            subprocess.call([Config.zabbix_sender, "-c", Config.zabbix_conf, "-k", "{0}[{1},{2}]".format(key_type, self.port, key), "-o", str(data[key])], stdout = FNULL, stderr = FNULL, shell = False)
-        FNULL.close()
+        zabbix = Zabbix(Config.zabbix_sender, Config.zabbix_conf, self.port)
+        zabbix.send2zabbix(key_type, data)
 
 def main():
     try:
