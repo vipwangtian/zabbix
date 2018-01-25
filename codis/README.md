@@ -1,27 +1,19 @@
 ## zabbinx监控[codis](https://github.com/CodisLabs/codis)
 ### 使用方法 
-将codis.py复制到/etc/zabbix/scripts/下，将userparameter_codis.conf复制到/etc/zabbix/zabbix_agent.d/下<br/>
-脚本用到了kazoo和requests库，要先安装这两个python库<br/>
-```shell
-pip install requests
-pip install kazoo
-```
-发送监控键值使用了[zabbix_sender](http://repo.zabbix.com/zabbix/3.4/rhel/6/x86_64/)，使用rpm命令安装
-```shell
-rpm -ivh http://repo.zabbix.com/zabbix/3.4/rhel/6/x86_64/zabbix-sender-3.4.3-1.el6.x86_64.rpm
-```
-zabbix-agent默认是在zabbix用户下执行的，要执行系统命令需要赋权限，执行如下命令
+* 将codis.py复制到/etc/zabbix/scripts/下，将userparameter_codis.conf复制到/etc/zabbix/zabbix_agent.d/下<br/>
+* [安装requests,kazoo,zabbix_sender](https://github.com/vipwangtian/zabbix/blob/master/doc/install_libs.md)
+* zabbix-agent默认是在zabbix用户下执行的，要执行系统命令需要赋权限，执行如下命令
 ```shell
 echo "zabbix ALL=(root) NOPASSWD:/bin/netstat" > /etc/sudoers.d/zabbix
 echo 'Defaults:zabbix   !requiretty'  >>  /etc/sudoers.d/zabbix
 chmod 600  /etc/sudoers.d/zabbix
 ```
-重启zabbix-agent<br/>
+* 重启zabbix-agent<br/>
 ```shell
 service zabbix-agent restart
 ```
-在web端导入Template App Codis Auto Discovery.xml模板，链接到codis-proxy和codis-server部署的主机<br/>
-Template App Codis FE.xml用于监控codis-fe是否存活，可以忽略，只检测9090端口是否被监听。
+* 在web端导入Template App Codis Auto Discovery.xml模板，链接到codis-proxy和codis-server部署的主机<br/>
+* Template App Codis FE.xml用于监控codis-fe是否存活，可以忽略，只检测9090端口是否被监听。
 ### 实现原理
 模板中包含自动发现，自动发现会调用客户端codis.py --listserver发现codis-server，codis.py --listproxy发现codis-proxy。<br/>
 发现方式为从zookeeper中读取集群配置。<br/>
