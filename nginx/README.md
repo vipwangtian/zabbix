@@ -1,4 +1,4 @@
-## zabbix监控nginx
+## zabbix监控[nginx](http://nginx.org/)
 ### 使用方法
 配置nginx<br/>
 ```txt
