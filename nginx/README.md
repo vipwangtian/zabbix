@@ -15,7 +15,7 @@ server {
 } 
 ```
 * 将nginx.py复制到/etc/zabbix/scripts/下，将userparameter_nginx.conf复制到/etc/zabbix/zabbix_agent.d/下<br/>
-* 安装[requests](https://github.com/vipwangtian/zabbix/blob/master/README.md)和[zabbix_sender](https://github.com/vipwangtian/zabbix/blob/master/README.md)  
+* 安装[requests](https://github.com/vipwangtian/zabbix/blob/master/doc/install_libs.md)和[zabbix_sender](https://github.com/vipwangtian/zabbix/blob/master/doc/install_libs.md)  
 * 重启zabbix-agent
 ```shell
 service zabbix-agent restart
