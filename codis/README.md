@@ -1,4 +1,4 @@
-## zabbinx监控codis
+## zabbinx监控[codis](https://github.com/CodisLabs/codis)
 ### 使用方法 
 将codis.py复制到/etc/zabbix/scripts/下，将userparameter_codis.conf复制到/etc/zabbix/zabbix_agent.d/下<br/>
 脚本用到了kazoo和requests库，要先安装这两个python库<br/>
@@ -26,3 +26,4 @@ Template App Codis FE.xml用于监控codis-fe是否存活，可以忽略，只�
 模板中包含自动发现，自动发现会调用客户端codis.py --listserver发现codis-server，codis.py --listproxy发现codis-proxy。<br/>
 发现方式为从zookeeper中读取集群配置。<br/>
 模板中监控项原型proxy-check和Redis-性能数据-check分别每隔30s和60s触发一次zabbix-agent客户端，调用codis.py -p $1 -k \[get_item_proxy/get_item_server\]获取监控数据，数据会通过zabbix_sender上传到zabbix_server。
+### 飞机
