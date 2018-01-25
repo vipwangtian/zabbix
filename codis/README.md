@@ -6,7 +6,7 @@
 pip install requests
 pip install kazoo
 ```
-发送监控键值使用了zabbix_sender，使用rpm命令安装，软件对应版本地址http://repo.zabbix.com/zabbix/3.4/rhel/6/x86_64/
+发送监控键值使用了[zabbix_sender](http://repo.zabbix.com/zabbix/3.4/rhel/6/x86_64/)，使用rpm命令安装
 ```shell
 rpm -ivh http://repo.zabbix.com/zabbix/3.4/rhel/6/x86_64/zabbix-sender-3.4.3-1.el6.x86_64.rpm
 ```
@@ -26,4 +26,3 @@ Template App Codis FE.xml用于监控codis-fe是否存活，可以忽略，只�
 模板中包含自动发现，自动发现会调用客户端codis.py --listserver发现codis-server，codis.py --listproxy发现codis-proxy。<br/>
 发现方式为从zookeeper中读取集群配置。<br/>
 模板中监控项原型proxy-check和Redis-性能数据-check分别每隔30s和60s触发一次zabbix-agent客户端，调用codis.py -p $1 -k \[get_item_proxy/get_item_server\]获取监控数据，数据会通过zabbix_sender上传到zabbix_server。
-### 飞机
