@@ -7,9 +7,9 @@ from common.zabbix import Zabbix
 class check_mysql(object):
     def __init__(self):
         self.config = {
-            'user': 'dbadmin',
-            'password': 'AZOffOqYxkqZNH0v',
-            'host': '192.168.112.8'
+            'user': 'user',
+            'password': 'password',
+            'host': 'host'
         }
 
     def get_status(self):
