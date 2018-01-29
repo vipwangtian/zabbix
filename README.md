@@ -1,1 +1,1 @@
-# zabbix监控模板
+# [zabbix](https://www.zabbix.com/)监控模板
