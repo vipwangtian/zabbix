@@ -11,7 +11,7 @@ pip install kazoo
 ```shell
 pip install requests
 ```
-[mysql-connector-python](https://dev.mysql.com/downloads/connector/python/)安装
+[mysql-connector-python](https://dev.mysql.com/downloads/connector/python/)安装<br/>
 下载源码mysql-connector-python-2.1.7-1.el6.src.rpm包，解压
 ```shell
 rpm2cpio mysql-connector-python-2.1.7-1.el6.src.rpm | cpio -div
