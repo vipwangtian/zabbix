@@ -1,4 +1,4 @@
-## zabbinx监控[codis](https://github.com/CodisLabs/codis)
+## zabbix监控[codis](https://github.com/CodisLabs/codis)
 ### 使用方法 
 * 将codis.py复制到/etc/zabbix/scripts/下，将userparameter_codis.conf复制到/etc/zabbix/zabbix_agent.d/下<br/>
 * [安装requests,kazoo,zabbix_sender](https://github.com/vipwangtian/zabbix/blob/master/doc/install_libs.md)
