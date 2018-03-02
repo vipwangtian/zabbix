@@ -148,14 +148,24 @@ class Codis(object):
         key_pre = "custom.codisdashboard.item"
         r = requests.get(url, verify=False)
         if r.status_code == 200:
-            ret = True
             data = r.json()
+            overview = "{0}\n".format(data["config"]["product_name"])
+            overview += "coordinator_name:{0}\n".format(data["config"]["coordinator_name"])
+            overview += "coordinator_addr:{0}\n".format(data["config"]["coordinator_addr"])
+            overview += "admin_addr:{0}\n".format(data["config"]["admin_addr"])
+            for proxy in data["stats"]["proxy"]["models"]:
+                overview += "proxy:{0} admin_addr:{1}\n".format(proxy["proxy_addr"], proxy["admin_addr"])
+            for server in data["stats"]["group"]["models"][0]["servers"]:
+                overview += "server:{0} role:{1}\n".format(server["server"], data["stats"]["group"]["stats"][server["server"]]["stats"]["role"])
+
             resobj = {}
             resobj[self.make_zabbix_key(key_pre, "pid")] = data["model"]["pid"]
+            resobj[self.make_zabbix_key(key_pre, "overview")] = "\"{0}\"".format(overview)
             resobj[self.make_zabbix_key(key_pre, "product_name")] = data["config"]["product_name"]
             resobj[self.make_zabbix_key(key_pre, "pwd")] = data["model"]["pwd"]
             resobj[self.make_zabbix_key(key_pre, "start_time")] = data["model"]["start_time"]
             self.send2zabbix(resobj)
+            ret = True
         return ret
 
     def make_zabbix_key(self, key_pre, key):
