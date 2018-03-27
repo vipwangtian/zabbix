@@ -33,7 +33,7 @@ class Nginx(object):
 		retcode = c2.code()
 		ret["process"] = stdo
 
-		r = requests.get(self.nginx_url, verify=False)
+		r = requests.get(self.nginx_url, verify=False, timeout = 1)
 		if r.status_code == 200:
 			lines = r.text.split("\n")
 			ret["active"] = lines[0].split(":")[1].strip()
