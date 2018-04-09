@@ -13,7 +13,7 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 class Nginx(object):
 	def __init__(self):
-		self.nginx_url = "http://127.0.0.1/stub_status"
+		self.nginx_url = "http://127.0.0.1/nginx_status"
 		self.cmdstr = "ps ax|grep -v \"grep\" | grep -c \"nginx:\""
 
 	def send2zabbix(self, data):
@@ -32,23 +32,32 @@ class Nginx(object):
 		stde = c2.stde()
 		retcode = c2.code()
 		ret["process"] = stdo
+		ret["active"] = 0
+		ret["accepts"] = 0
+		ret["handled"] = 0
+		ret["requests"] = 0
+		ret["reading"] = 0
+		ret["writing"] = 0
+		ret["waiting"] = 0
 
-		r = requests.get(self.nginx_url, verify=False, timeout = 1)
-		if r.status_code == 200:
-			lines = r.text.split("\n")
-			ret["active"] = lines[0].split(":")[1].strip()
-			p = re.compile(r"\d+")
-			line3Arr = p.findall(lines[2])
-			ret["accepts"] = line3Arr[0].strip()
-			ret["handled"] = line3Arr[1].strip()
-			ret["requests"] = line3Arr[2].strip()
-			p = re.compile(r"\d+")
-			line4Arr = p.findall(lines[3])
-			ret["reading"] = line4Arr[0]
-			ret["writing"] = line4Arr[1]
-			ret["waiting"] = line4Arr[2]
-			return ret, True
-		return NULL, False
+		try:
+			r = requests.get(self.nginx_url, verify=False, timeout = 1)
+			if r.status_code == 200:
+				lines = r.text.split("\n")
+				ret["active"] = lines[0].split(":")[1].strip()
+				p = re.compile(r"\d+")
+				line3Arr = p.findall(lines[2])
+				ret["accepts"] = line3Arr[0].strip()
+				ret["handled"] = line3Arr[1].strip()
+				ret["requests"] = line3Arr[2].strip()
+				p = re.compile(r"\d+")
+				line4Arr = p.findall(lines[3])
+				ret["reading"] = line4Arr[0]
+				ret["writing"] = line4Arr[1]
+				ret["waiting"] = line4Arr[2]
+		except:
+			pass
+		return ret, True
 def main():
 	try:
 		nginx_ins = Nginx()
@@ -58,7 +67,7 @@ def main():
 	except Exception as expt:
 		import traceback
 		tb = traceback.format_exc()
-		print tb
+		print(tb)
 		
 
 if __name__ == "__main__":
