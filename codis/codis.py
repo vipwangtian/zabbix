@@ -108,18 +108,18 @@ class Codis(object):
         ret = False
         url = "http://127.0.0.1:{0}/proxy/stats".format(self.port)
         key_pre = "custom.codisproxy.item"
-        r = requests.get(url, verify=False)
-        if r.status_code == 200 :
+        r = self.__request(url)
+        if r:
             data = r.json()
             if data["online"] :
                 ret = True
                 resobj = {}
-                resobj[self.make_zabbix_key(key_pre, "qps")] = data["ops"]["qps"]
-                resobj[self.make_zabbix_key(key_pre, "session_total")] = data["sessions"]["total"]
-                resobj[self.make_zabbix_key(key_pre, "session_alive")] = data["sessions"]["alive"]
-                resobj[self.make_zabbix_key(key_pre, "cmd_total")] = data["ops"]["total"]
-                resobj[self.make_zabbix_key(key_pre, "cmd_fails")] = data["ops"]["fails"]
-                resobj[self.make_zabbix_key(key_pre, "rsp_errs")] = data["ops"]["redis"]["errors"]
+                resobj[self.__make_zabbix_key(key_pre, "qps")] = data["ops"]["qps"]
+                resobj[self.__make_zabbix_key(key_pre, "session_total")] = data["sessions"]["total"]
+                resobj[self.__make_zabbix_key(key_pre, "session_alive")] = data["sessions"]["alive"]
+                resobj[self.__make_zabbix_key(key_pre, "cmd_total")] = data["ops"]["total"]
+                resobj[self.__make_zabbix_key(key_pre, "cmd_fails")] = data["ops"]["fails"]
+                resobj[self.__make_zabbix_key(key_pre, "rsp_errs")] = data["ops"]["redis"]["errors"]
                 self.send2zabbix(resobj)
         return ret
 
@@ -136,7 +136,7 @@ class Codis(object):
         for line in stdo_list:
             for key in Config.server_key_map:
                 if key + ":" in str(line):
-                    resobj[self.make_zabbix_key(key_pre, key)] = line.split(":")[1].strip()
+                    resobj[self.__make_zabbix_key(key_pre, key)] = line.split(":")[1].strip()
         if len(resobj) > 0:
             self.send2zabbix(resobj)
             return True
@@ -146,8 +146,8 @@ class Codis(object):
         ret = False
         url = "http://127.0.0.1:{0}/topom".format(self.port)
         key_pre = "custom.codisdashboard.item"
-        r = requests.get(url, verify=False)
-        if r.status_code == 200:
+        r = self.__request(url)
+        if r:
             data = r.json()
             overview = "{0}\n".format(data["config"]["product_name"])
             overview += "coordinator_name:{0}\n".format(data["config"]["coordinator_name"])
@@ -159,16 +159,25 @@ class Codis(object):
                 overview += "server:{0} role:{1}\n".format(server["server"], data["stats"]["group"]["stats"][server["server"]]["stats"]["role"])
 
             resobj = {}
-            resobj[self.make_zabbix_key(key_pre, "pid")] = data["model"]["pid"]
-            resobj[self.make_zabbix_key(key_pre, "overview")] = "\"{0}\"".format(overview)
-            resobj[self.make_zabbix_key(key_pre, "product_name")] = data["config"]["product_name"]
-            resobj[self.make_zabbix_key(key_pre, "pwd")] = data["model"]["pwd"]
-            resobj[self.make_zabbix_key(key_pre, "start_time")] = data["model"]["start_time"]
+            resobj[self.__make_zabbix_key(key_pre, "pid")] = data["model"]["pid"]
+            resobj[self.__make_zabbix_key(key_pre, "overview")] = "\"{0}\"".format(overview)
+            resobj[self.__make_zabbix_key(key_pre, "product_name")] = data["config"]["product_name"]
+            resobj[self.__make_zabbix_key(key_pre, "pwd")] = data["model"]["pwd"]
+            resobj[self.__make_zabbix_key(key_pre, "start_time")] = data["model"]["start_time"]
             self.send2zabbix(resobj)
             ret = True
         return ret
 
-    def make_zabbix_key(self, key_pre, key):
+    def __request(url):
+        try:
+            r = requests(url, verify=False, timeout=10)
+            if r.status_code == 200:
+                return r
+        except:
+            pass
+        return None
+
+    def __make_zabbix_key(self, key_pre, key):
         return "{0}[{1},{2}]".format(key_pre, self.port, key)
 
     def send2zabbix(self,data):

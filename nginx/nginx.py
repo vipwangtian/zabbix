@@ -31,14 +31,16 @@ class Nginx(object):
 		stdo = c2.stdo()
 		stde = c2.stde()
 		retcode = c2.code()
-		ret["process"] = stdo
-		ret["active"] = 0
-		ret["accepts"] = 0
-		ret["handled"] = 0
-		ret["requests"] = 0
-		ret["reading"] = 0
-		ret["writing"] = 0
-		ret["waiting"] = 0
+        ret = { 
+            "process" : stdo, 
+            "active" : 0, 
+            "accepts" : 0, 
+            "handled" : 0, 
+            "requests" : 0, 
+            "reading" : 0, 
+            "writing" : 0, 
+            "waiting" : 0 
+        }
 
 		try:
 			r = requests.get(self.nginx_url, verify=False, timeout = 1)
