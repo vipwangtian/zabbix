@@ -1,4 +1,4 @@
-## [zabbix](https://www.zabbix.com/)监控模板
+## [zabbix](https://www.zabbix.com/) template
 ### apache
 * [https://github.com/vipwangtian/zabbix/tree/master/apache](https://github.com/vipwangtian/zabbix/tree/master/apache)
 ### codis
